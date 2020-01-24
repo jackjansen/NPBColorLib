@@ -1,0 +1,14 @@
+{
+  "name": "NPBColorLib",
+  "keywords": "NeoPixel, NeoPixelBus, Color Temperature, RGB, RGBW",
+  "description": "A library with various color representations and operations for use with NeoPixelBus",
+  "homepage": "https://github.com/jackjansen/NPBColorLib",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jackjansen/NPBColorLib"
+  },
+  "version": "0.1",
+  "frameworks": "arduino",
+  "platforms": "*"
+}
+
