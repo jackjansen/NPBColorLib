@@ -40,6 +40,26 @@ void setup() {
     cwf = cf;
     assert(cwf.CalculateBrightness() == cf.CalculateBrightness());
 
+    HslFColor ch(0.1, 0.2, 0.3);
+    RgbFColor cf3(ch);
+    HslFColor ch2(cf3);
+    RgbFColor cf4(ch2);
+    assert(cf3.CalculateBrightness() == ch.CalculateBrightness());
+    assert(ch2.CalculateBrightness() == ch.CalculateBrightness());
+    assert(cf4.CalculateBrightness() == ch.CalculateBrightness());
+    assert(ch == ch2);
+    assert(cf3 == cf4);
+
+    TempFColor t1(3000, 0.6);
+    TempFColor t2(4000, 0.6);
+    assert(t1.CalculateBrightness() == t2.CalculateBrightness());
+    cf3 = t1;
+    assert(t1.CalculateBrightness() == cf3.CalculateBrightness());
+    cf4 = t2;
+    assert(t2.CalculateBrightness() == cf4.CalculateBrightness());
+    assert(t1 != t2);
+    assert(cf3 != cf4);
+
     Serial.println("All done");
 }
 
