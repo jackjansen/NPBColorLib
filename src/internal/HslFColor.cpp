@@ -15,13 +15,67 @@ inline void _clamp(float& f)
 
 HslFColor::operator RgbFColor() const
 {
-	assert(0);
-	return RgbFColor(0, 0, 0);
+	float chroma = (1 - abs(2*L - 1)) * S;
+	float hprime = fmod(H, 360.0) / 60;
+	float x = chroma * (1-abs(fmod(hprime, 2.0)-1));
+	float r1, g1, b1;
+	r1 = g1 = b1 = 0;
+	if (0 <= hprime && hprime <= 1) {
+		r1 = chroma;
+		g1 = x;
+		b1 = 0;
+	} else
+	if (1 <= hprime && hprime <= 2) {
+		r1 = x;
+		g1 = chroma;
+		b1 = 0;
+	} else
+	if (2 <= hprime && hprime <= 3) {
+		r1 = 0;
+		g1 = chroma;
+		b1 = x;
+	} else
+	if (3 <= hprime && hprime <= 4) {
+		r1 = 0;
+		g1 = x;
+		b1 = chroma;
+	} else
+	if (4 <= hprime && hprime <= 5) {
+		r1 = x;
+		g1 = 0;
+		b1 = chroma;
+	} else
+	if (5 <= hprime && hprime <= 6) {
+		r1 = chroma;
+		g1 = 0;
+		b1 = x;
+	}
+	float m = L - (chroma/2);
+	return RgbFColor(r1+m, g1+m, b1+m);
 }
 
 HslFColor::HslFColor(RgbFColor const&src)
 {
-	assert(0);
+	float minColor = min(src.R, min(src.G, src.B));
+	float maxColor = max(src.R, max(src.G, src.B));
+	L = (minColor + maxColor) / 2;
+	if (minColor == maxColor) {
+		H = 0;
+		S = 0;
+		return;
+	}
+	if (L < 0.5) {
+		S = (maxColor-minColor)/(maxColor+minColor);
+	} else {
+		S = (maxColor-minColor)/(2-maxColor-minColor);
+	}
+	if (maxColor == src.R) {
+		H = 60 * (src.G - src.B) / (maxColor-minColor);
+	} else if (maxColor == src.G) {
+		H = 60 * (src.B - src.R) / (maxColor-minColor);
+	} else {
+		H = 60 * (src.R - src.G) / (maxColor-minColor);
+	}
 }
 
 HslFColor HslFColor::Dim(float ratio) const

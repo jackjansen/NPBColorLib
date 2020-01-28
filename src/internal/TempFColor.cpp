@@ -15,8 +15,34 @@ inline void _clamp(float& f)
 
 TempFColor::operator RgbFColor() const
 {
-	assert(0);
-	return RgbFColor(0,0,0);
+  // Algorithm from http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code
+  // as adapted by Renaud Bédard for https://www.shadertoy.com/view/lsSXW1
+  float r, g, b;
+  float temp = Temperature;
+  if (temp < 1000) temp = 1000;
+  if (temp > 40000) temp = 40000;
+  float t = temp / 100;
+  if (t < 66) {
+    r = 1;
+    g = 0.39008157876901960784 * log(t) - 0.63184144378862745098;
+  } else {
+    r = 1.29293618606274509804 * pow(t-60, -0.1332047592);
+    g = 1.12989086089529411765 * pow(t-60, -0.0755148492);
+  }
+  if (t >= 66) {
+    b = 1;
+  } else if (t <= 19) {
+    b = 0;
+  } else {
+    b = 0.54320678911019607843 * log(t - 10.0) - 1.19625408914;
+  }
+  r *= Brightness;
+  _clamp(r);
+  g *= Brightness;
+  _clamp(g);
+  b *= Brightness;
+  _clamp(b);
+  return RgbFColor(r, g, b);
 }
 
 TempFColor TempFColor::Dim(float ratio) const
