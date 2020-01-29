@@ -55,8 +55,8 @@ struct Colorspace
     // ------------------------------------------------------------------------
     // Members
     // ------------------------------------------------------------------------
-    float Temperature;
-    float Brightness;
+    float WTemperature;
+    float WBrightness;
 protected:
     void _extractWhiteChannel(RgbwFColor& color);
     bool huePriority;

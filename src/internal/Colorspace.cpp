@@ -18,8 +18,8 @@ inline void _clamp(float& f)
 NeoGamma<NeoGammaEquationMethod> gammaConverter;
 
 Colorspace::Colorspace(float temperatureW, float brightnessW, bool huePriority, bool gamma)
-: Temperature(temperatureW), 
-  Brightness(brightnessW), 
+: WTemperature(temperatureW), 
+  WBrightness(brightnessW), 
   huePriority(huePriority),
   whiteColor(TempFColor(temperatureW, 1.0)),
   gammaConvert(gamma)
@@ -28,7 +28,7 @@ Colorspace::Colorspace(float temperatureW, float brightnessW, bool huePriority, 
 }
 
 void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
-  if (Brightness == 0) return;  // No W channel, nothing to do.
+  if (WBrightness == 0) return;  // No W channel, nothing to do.
   //
   // Determine how much whiteColor we can move out of color into the W channel.
   // Note that whiteColor (and color) are in D65 space, and the RGB value of
@@ -63,7 +63,7 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   //
   // Now we adjust for the maximum available brightness ()
   //
-  float maxBrightness = 1.0 + Brightness; // Maximum brightness of all LEDs
+  float maxBrightness = 1.0 + WBrightness; // Maximum brightness of all LEDs
   color.R *= maxBrightness;
   color.G *= maxBrightness;
   color.B *= maxBrightness;
