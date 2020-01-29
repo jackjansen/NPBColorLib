@@ -81,6 +81,15 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
       color.B /= maxChannel;
       color.W /= maxChannel;
     }
+  } else {
+    if (color.W > 1) {
+      // We attempt to transfer excess whiteness back to the RGB channels
+      float excessWhite = color.W - 1;
+      color.W = 1;
+      color.R += whiteColor.R * excessWhite;
+      color.G += whiteColor.G * excessWhite;
+      color.B += whiteColor.B * excessWhite;
+    }
   }
   //
   // We now clamp all values. For brightness-priority it is definitely needed,
