@@ -32,7 +32,7 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   //
   // Determine how much whiteColor we can move out of color into the W channel.
   // Note that whiteColor (and color) are in D65 space, and the RGB value of
-  // whiteColor is therefore the color of our Temperature in D65 space.
+  // whiteColor is therefore the color of our WTemperature in D65 space.
   //
   // Note that during the execution of this method channel values may be > 1 but
   // that will all be fixed.
@@ -41,17 +41,17 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   if (color.R == 0) {
     maxFactor = 0;
   } else if (whiteColor.R != 0) {
-    maxFactor = color.R / whiteColor.R;
+    maxFactor = min(maxFactor, color.R / whiteColor.R);
   }
   if (color.G == 0) {
     maxFactor = 0;
   } else if (whiteColor.G != 0) {
-    maxFactor = color.G / whiteColor.G;
+    maxFactor = min(maxFactor, color.G / whiteColor.G);
   }
   if (color.B == 0) {
     maxFactor = 0;
   } else if (whiteColor.B != 0) {
-    maxFactor = color.B / whiteColor.B;
+    maxFactor = min(maxFactor, color.B / whiteColor.B);
   }
   //
   // This is our white value, and we subtract the corresponding whiteness from R, G and B
