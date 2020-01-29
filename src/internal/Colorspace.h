@@ -20,9 +20,12 @@ struct RgbwColor;
 // Colorspace represents a specific type of RGBW pixels and their use. 
 // In the constructor you specify the temperature and relative intensity
 // of the white LED, and whether to give priority to hue correctness or
-// brightness correctness.
-// The object will then have a converter method that converts any color
+// brightness correctness. If temperature or intensity is 0 the W channel
+// will not be used.
+// Colorspace objects contain converter methods that convert any color
 // type to RGBW values.
+// For sake of API completeness colors can also be converted to RGB values,
+// in which case the constructur arguments are ignored.
 // ------------------------------------------------------------------------
 struct Colorspace
 {
@@ -53,6 +56,16 @@ struct Colorspace
     RgbwColor toRgbwColor(TempFColor src);
 
     // ------------------------------------------------------------------------
+    // TempFColor -> RgbwFColor
+    // ------------------------------------------------------------------------
+    RgbFColor toRgbFColor(TempFColor src);
+
+    // ------------------------------------------------------------------------
+    // TempFColor -> RgbwColor
+    // ------------------------------------------------------------------------
+    RgbColor toRgbColor(TempFColor src);
+
+    // ------------------------------------------------------------------------
     // HslFColor -> RgbwFColor
     // ------------------------------------------------------------------------
     RgbwFColor toRgbwFColor(HslFColor src);
@@ -63,6 +76,16 @@ struct Colorspace
     RgbwColor toRgbwColor(HslFColor src);
 
     // ------------------------------------------------------------------------
+    // HslFColor -> RgbwFColor
+    // ------------------------------------------------------------------------
+    RgbFColor toRgbFColor(HslFColor src);
+    
+    // ------------------------------------------------------------------------
+    // HslFColor -> RgbwColor
+    // ------------------------------------------------------------------------
+    RgbColor toRgbColor(HslFColor src);
+
+    // ------------------------------------------------------------------------
     // RgbFColor -> RgbwFColor
     // ------------------------------------------------------------------------
     RgbwFColor toRgbwFColor(RgbFColor src);
@@ -71,6 +94,16 @@ struct Colorspace
     // RgbFColor -> RgbwColor
     // ------------------------------------------------------------------------
     RgbwColor toRgbwColor(RgbFColor src);
+
+    // ------------------------------------------------------------------------
+    // RgbFColor -> RgbwFColor
+    // ------------------------------------------------------------------------
+    RgbFColor toRgbFColor(RgbFColor src);
+    
+    // ------------------------------------------------------------------------
+    // RgbFColor -> RgbwColor
+    // ------------------------------------------------------------------------
+    RgbColor toRgbColor(RgbFColor src);
 
 
 

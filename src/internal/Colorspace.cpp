@@ -20,22 +20,24 @@ RgbwFColor Colorspace::toRgbwFColor(TempFColor src) {
   assert(0);
 }
 
-RgbwColor Colorspace::toRgbwColor(TempFColor src) {
-  return (RgbwColor)toRgbwFColor(src);
+RgbFColor Colorspace::toRgbFColor(TempFColor src) {
+  assert(0);
 }
 
 RgbwFColor Colorspace::toRgbwFColor(HslFColor src) {
   assert(0);
 }
 
-RgbwColor Colorspace::toRgbwColor(HslFColor src)  {
-  return (RgbwColor)toRgbwFColor(src);
-}
-
-RgbwFColor Colorspace::toRgbwFColor(RgbFColor src) {
+RgbFColor Colorspace::toRgbFColor(HslFColor src) {
   assert(0);
 }
 
-RgbwColor Colorspace::toRgbwColor(RgbFColor src) {
-  return (RgbwColor)toRgbwFColor(src);
-}
+RgbwFColor Colorspace::toRgbwFColor(RgbFColor src) {return src; }
+RgbFColor Colorspace::toRgbFColor(RgbFColor src) {return src; }
+
+RgbwColor Colorspace::toRgbwColor(TempFColor src) {return toRgbwColor(src); }
+RgbColor Colorspace::toRgbColor(TempFColor src) {return toRgbColor(src); }
+RgbwColor Colorspace::toRgbwColor(HslFColor src) {return toRgbwColor(src); }
+RgbColor Colorspace::toRgbColor(HslFColor src) {return toRgbColor(src); }
+RgbwColor Colorspace::toRgbwColor(RgbFColor src) {return toRgbwColor(src); }
+RgbColor Colorspace::toRgbColor(RgbFColor src) {return toRgbColor(src); }
