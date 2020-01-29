@@ -9,8 +9,10 @@ point numbers between 0.0 and 1.0
 #include <Arduino.h>
 #include <NeoPixelBus.h>
 
+#include "TempFColor.h"
+#include "RgbFColor.h"
+
 struct RgbFColor;
-struct TempFColor;
 struct HslFColor;
 struct RgbwFColor;
 struct RgbColor;
@@ -32,86 +34,33 @@ struct Colorspace
     // ------------------------------------------------------------------------
     // Construct a Colorspace using Temperature (Kelvin), Brightness (0-1) and usage
     // ------------------------------------------------------------------------
-    Colorspace(float temperatureW, float brightnessW, bool huePriority=false) :
-        Temperature(temperatureW), Brightness(brightnessW), HuePriority(huePriority)
-    {
-    };
+    Colorspace(float temperatureW=6500, float brightnessW=0, bool huePriority=true, bool gamma=true);
 
     // ------------------------------------------------------------------------
-    // Construct a Colorspace that will have its values set in latter operations
-    // CAUTION:  The members are not initialized and may not be consistent
+    // Converters between all reasonable colorspaces
     // ------------------------------------------------------------------------
-    Colorspace()
-    {
-    };
-
-    // ------------------------------------------------------------------------
-    // TempFColor -> RgbwFColor
-    // ------------------------------------------------------------------------
-    RgbwFColor toRgbwFColor(TempFColor src);
-
-    // ------------------------------------------------------------------------
-    // TempFColor -> RgbwColor
-    // ------------------------------------------------------------------------
-    RgbwColor toRgbwColor(TempFColor src);
-
-    // ------------------------------------------------------------------------
-    // TempFColor -> RgbwFColor
-    // ------------------------------------------------------------------------
-    RgbFColor toRgbFColor(TempFColor src);
-
-    // ------------------------------------------------------------------------
-    // TempFColor -> RgbwColor
-    // ------------------------------------------------------------------------
-    RgbColor toRgbColor(TempFColor src);
-
-    // ------------------------------------------------------------------------
-    // HslFColor -> RgbwFColor
-    // ------------------------------------------------------------------------
-    RgbwFColor toRgbwFColor(HslFColor src);
-    
-    // ------------------------------------------------------------------------
-    // HslFColor -> RgbwColor
-    // ------------------------------------------------------------------------
-    RgbwColor toRgbwColor(HslFColor src);
-
-    // ------------------------------------------------------------------------
-    // HslFColor -> RgbwFColor
-    // ------------------------------------------------------------------------
-    RgbFColor toRgbFColor(HslFColor src);
-    
-    // ------------------------------------------------------------------------
-    // HslFColor -> RgbwColor
-    // ------------------------------------------------------------------------
-    RgbColor toRgbColor(HslFColor src);
-
-    // ------------------------------------------------------------------------
-    // RgbFColor -> RgbwFColor
-    // ------------------------------------------------------------------------
-    RgbwFColor toRgbwFColor(RgbFColor src);
-    
-    // ------------------------------------------------------------------------
-    // RgbFColor -> RgbwColor
-    // ------------------------------------------------------------------------
-    RgbwColor toRgbwColor(RgbFColor src);
-
-    // ------------------------------------------------------------------------
-    // RgbFColor -> RgbwFColor
-    // ------------------------------------------------------------------------
-    RgbFColor toRgbFColor(RgbFColor src);
-    
-    // ------------------------------------------------------------------------
-    // RgbFColor -> RgbwColor
-    // ------------------------------------------------------------------------
-    RgbColor toRgbColor(RgbFColor src);
-
-
+    void Convert(const RgbFColor& from, RgbColor& to);
+    void Convert(const RgbFColor& from, RgbwColor& to);
+    void Convert(const TempFColor& from, RgbColor& to);
+    void Convert(const TempFColor& from, RgbwColor& to);
+    void Convert(const HslFColor& from, RgbColor& to);
+    void Convert(const HslFColor& from, RgbwColor& to);
+    RgbColor toRgb(RgbFColor from);
+    RgbwColor toRgbw(RgbFColor from);
+    RgbColor toRgb(TempFColor from);
+    RgbwColor toRgbw(TempFColor from);
+    RgbColor toRgb(HslFColor from);
+    RgbwColor toRgbw(HslFColor from);
 
     // ------------------------------------------------------------------------
     // Members
     // ------------------------------------------------------------------------
     float Temperature;
     float Brightness;
-    bool HuePriority;
+protected:
+    void _extractWhiteChannel(RgbwFColor& color);
+    bool huePriority;
+    RgbFColor whiteColor;
+    bool gammaConvert;
 };
 

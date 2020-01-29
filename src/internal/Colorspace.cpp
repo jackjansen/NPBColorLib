@@ -8,7 +8,6 @@ point numbers between 0.0 and 1.0
 #include "RgbFColor.h"
 #include "RgbwFColor.h"
 #include "HslFColor.h"
-#include "TempFColor.h"
 
 inline void _clamp(float& f)
 {
@@ -16,28 +15,173 @@ inline void _clamp(float& f)
 	if (f > 1) f = 1;
 }
 
-RgbwFColor Colorspace::toRgbwFColor(TempFColor src) {
-  assert(0);
+NeoGamma<NeoGammaEquationMethod> gammaConverter;
+
+Colorspace::Colorspace(float temperatureW, float brightnessW, bool huePriority, bool gamma)
+: Temperature(temperatureW), 
+  Brightness(brightnessW), 
+  huePriority(huePriority),
+  whiteColor(TempFColor(temperatureW, 1.0)),
+  gammaConvert(gamma)
+{
+
 }
 
-RgbFColor Colorspace::toRgbFColor(TempFColor src) {
-  assert(0);
+void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
+  if (Brightness == 0) return;  // No W channel, nothing to do.
+  //
+  // Determine how much whiteColor we can move out of color into the W channel.
+  // Note that whiteColor (and color) are in D65 space, and the RGB value of
+  // whiteColor is therefore the color of our Temperature in D65 space.
+  //
+  // Note that during the execution of this method channel values may be > 1 but
+  // that will all be fixed.
+  //
+  float maxFactor = 1;
+  if (color.R == 0) {
+    maxFactor = 0;
+  } else if (whiteColor.R != 0) {
+    maxFactor = color.R / whiteColor.R;
+  }
+  if (color.G == 0) {
+    maxFactor = 0;
+  } else if (whiteColor.G != 0) {
+    maxFactor = color.G / whiteColor.G;
+  }
+  if (color.B == 0) {
+    maxFactor = 0;
+  } else if (whiteColor.B != 0) {
+    maxFactor = color.B / whiteColor.B;
+  }
+  //
+  // This is our white value, and we subtract the corresponding whiteness from R, G and B
+  //
+  color.W += maxFactor;
+  color.R -= whiteColor.R*maxFactor;
+  color.G -= whiteColor.G*maxFactor;
+  color.B -= whiteColor.B*maxFactor;
+  //
+  // Now we adjust for the maximum available brightness ()
+  //
+  float maxBrightness = 1.0 + Brightness; // Maximum brightness of all LEDs
+  color.R *= maxBrightness;
+  color.G *= maxBrightness;
+  color.B *= maxBrightness;
+  color.W *= maxBrightness;
+  if (huePriority) {
+    //
+    // If we need to be hue-preserving we divide everything by the maximum value iff
+    // any value is >1. This maintains the hue at the expense of not driving the LEDs
+    // to the maximum attainable brightness.
+    //
+    float maxChannel = max(color.R, max(color.G, max(color.B, color.W)));
+    if (maxChannel > 1) {
+      color.R /= maxChannel;
+      color.G /= maxChannel;
+      color.B /= maxChannel;
+      color.W /= maxChannel;
+    }
+  }
+  //
+  // We now clamp all values. For brightness-priority it is definitely needed,
+  // for huePriority it will fix any values that have become slightly out-of-range
+  // because of floating point rounding errors.
+  //
+  _clamp(color.R);
+  _clamp(color.G);
+  _clamp(color.B);
+  _clamp(color.W);
 }
 
-RgbwFColor Colorspace::toRgbwFColor(HslFColor src) {
-  assert(0);
+void Colorspace::Convert(const RgbFColor& from, RgbColor& to) {
+  if (gammaConvert) {
+    to = gammaConverter.Correct(from);
+  } else {
+    to = from;
+  }
 }
 
-RgbFColor Colorspace::toRgbFColor(HslFColor src) {
-  assert(0);
+void Colorspace::Convert(const RgbFColor& from, RgbwColor& to) {
+  RgbwFColor wanted(from);
+  _extractWhiteChannel(wanted);
+  if (gammaConvert) {
+    to = gammaConverter.Correct(wanted);
+  } else {
+    to = wanted;
+  }
 }
 
-RgbwFColor Colorspace::toRgbwFColor(RgbFColor src) {return src; }
-RgbFColor Colorspace::toRgbFColor(RgbFColor src) {return src; }
+void Colorspace::Convert(const TempFColor& from, RgbColor& to) {
+  RgbFColor wanted(from);
+  if (gammaConvert) {
+    to = gammaConverter.Correct(wanted);
+  } else {
+    to = wanted;
+  }
+}
 
-RgbwColor Colorspace::toRgbwColor(TempFColor src) {return toRgbwColor(src); }
-RgbColor Colorspace::toRgbColor(TempFColor src) {return toRgbColor(src); }
-RgbwColor Colorspace::toRgbwColor(HslFColor src) {return toRgbwColor(src); }
-RgbColor Colorspace::toRgbColor(HslFColor src) {return toRgbColor(src); }
-RgbwColor Colorspace::toRgbwColor(RgbFColor src) {return toRgbwColor(src); }
-RgbColor Colorspace::toRgbColor(RgbFColor src) {return toRgbColor(src); }
+void Colorspace::Convert(const TempFColor& from, RgbwColor& to) {
+  RgbwFColor wanted(from);
+  _extractWhiteChannel(wanted);
+  if (gammaConvert) {
+    to = gammaConverter.Correct(wanted);
+  } else {
+    to = wanted;
+  }
+}
+
+void Colorspace::Convert(const HslFColor& from, RgbColor& to) {
+  RgbFColor wanted(from);
+  if (gammaConvert) {
+    to = gammaConverter.Correct(wanted);
+  } else {
+    to = wanted;
+  }
+}
+
+void Colorspace::Convert(const HslFColor& from, RgbwColor& to) {
+  RgbwFColor wanted(from);
+  _extractWhiteChannel(wanted);
+  if (gammaConvert) {
+    to = gammaConverter.Correct(wanted);
+  } else {
+    to = wanted;
+  }
+}
+
+RgbColor Colorspace::toRgb(const RgbFColor from) {
+  RgbColor to;
+  Convert(from, to);
+  return to;
+}
+
+RgbwColor Colorspace::toRgbw(const RgbFColor from) {
+  RgbwColor to;
+  Convert(from, to);
+  return to;
+}
+
+RgbColor Colorspace::toRgb(const TempFColor from) {
+  RgbColor to;
+  Convert(from, to);
+  return to;
+}
+
+RgbwColor Colorspace::toRgbw(const TempFColor from) {
+  RgbwColor to;
+  Convert(from, to);
+  return to;
+}
+
+RgbColor Colorspace::toRgb(const HslFColor from) {
+  RgbColor to;
+  Convert(from, to);
+  return to;
+}
+
+RgbwColor Colorspace::toRgbw(const HslFColor from) {
+  RgbwColor to;
+  Convert(from, to);
+  return to;
+}
+
