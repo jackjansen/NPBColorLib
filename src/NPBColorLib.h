@@ -8,3 +8,4 @@ Various color representations and operations for use with NeoPixelBus.
 #include "internal/RgbwFColor.h"
 #include "internal/HslFColor.h"
 #include "internal/TempFcolor.h"
+#include "internal/Colorspace.h"
