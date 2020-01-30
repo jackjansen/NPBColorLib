@@ -6,8 +6,8 @@
 #include <NPBColorLib.h>
 
 // Fill in your SSID and password here
-const char* ssid = ".....";
-const char* password = ".....";
+const char* ssid = "......";
+const char* password = "......";
 
 WebServer server(80);
 
@@ -23,12 +23,45 @@ enum { rgb, hsl, temp } whichColor;
 Colorspace colorspace(4000, 0, true, false);  // Default: don't use W channel, hue priority, no gamma
 
 void handleRoot() {
+  // Handle any parameters to the form
+  if (server.hasArg("colorspace")) {
+    float temperature = server.arg("temperature").toFloat();
+    float brightness = server.arg("brightness").toFloat();
+    int hue = server.arg("hue").toInt();
+    int gamma = server.arg("gamma").toInt();
+    colorspace = Colorspace(temperature, brightness, hue, gamma);
+    pixelRefresh = true;
+  }
+  if (server.hasArg("rgb")) {
+    float r = server.arg("r").toFloat();
+    float g = server.arg("g").toFloat();
+    float b = server.arg("b").toFloat();
+    rgbColor = RgbFColor(r, g, b);
+    whichColor = rgb;
+    pixelRefresh = true;
+  }
+  if (server.hasArg("hsl")) {
+    float h = server.arg("h").toFloat();
+    float s = server.arg("s").toFloat();
+    float l = server.arg("l").toFloat();
+    hslColor = HslFColor(h, s, l);
+    whichColor = hsl;
+    pixelRefresh = true;
+  }
+  if (server.hasArg("temp")) {
+    float temperature = server.arg("temperature").toFloat();
+    float brightness = server.arg("brightness").toFloat();
+    tempColor = TempFColor(temperature, brightness);
+    whichColor = temp;
+    pixelRefresh = true;
+  }
+  // Create output form
   String doc = "<html><head><title>RGBW ledstrip example</title><head><body><h1>ledstrip example</h1>";
   doc += "<p>Change color mapping parameters or color to see the effect on the led strip.</p>";
   doc += "</body></html>";
 
   doc += "<h2>Colorspace parameters</h2><form>";
-  doc += "Color Temperature of White LED (2000 - 7000 Kelvin): <br><input name='temperature' value='" + String(colorspace.WTemperature) + "'><br>";
+  doc += "Color Temperature of White LED (usually 3000 for warm, 4000 for neutral or 5000 for cool white): <br><input name='temperature' value='" + String(colorspace.WTemperature) + "'><br>";
   doc += "Brightness of White LED compared to RGB White (floating point number), 0 to not use W channel:<br><input name='brightness' value='" + String(colorspace.WBrightness) + "'><br>";
   doc += "Preserve hue (1) or prioritize brightness (0):<br><input name='hue' value='" + String(colorspace.huePriority) + "'><br>";
   doc += "Gamma-correct RGBW (1) or not (0):<br><input name='gamma' value='" + String(colorspace.gammaConvert) + "'><br>";
@@ -54,7 +87,7 @@ void handleRoot() {
   doc += "<h2>Temperature/Brightness color</h2><form>";
   if (whichColor == temp) doc += "Currently shown color is Temperature/Brightness.<br>";
   doc += "Color Temperature (2000 - 7000 Kelvin): <br><input name='temperature' value='" + String(tempColor.Temperature) + "'><br>";
-  doc += "Brightness (0.0 - 1.0 ): <br><input name='g' value='" + String(tempColor.Brightness) + "'><br>";
+  doc += "Brightness (0.0 - 1.0 ): <br><input name='brightness' value='" + String(tempColor.Brightness) + "'><br>";
   doc += "<input type='submit' name='temp' value='Set'></form>";
 
   server.send(200, "text/html", doc);
