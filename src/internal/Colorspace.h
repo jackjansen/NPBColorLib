@@ -57,10 +57,10 @@ struct Colorspace
     // ------------------------------------------------------------------------
     float WTemperature;
     float WBrightness;
+    RgbFColor whiteColor;
+    bool huePriority;
+    bool gammaConvert;
 protected:
     void _extractWhiteChannel(RgbwFColor& color);
-    bool huePriority;
-    RgbFColor whiteColor;
-    bool gammaConvert;
 };
 

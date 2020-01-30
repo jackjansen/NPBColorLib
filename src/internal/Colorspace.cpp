@@ -20,8 +20,8 @@ NeoGamma<NeoGammaEquationMethod> gammaConverter;
 Colorspace::Colorspace(float temperatureW, float brightnessW, bool huePriority, bool gamma)
 : WTemperature(temperatureW), 
   WBrightness(brightnessW), 
-  huePriority(huePriority),
   whiteColor(TempFColor(temperatureW, 1.0)),
+  huePriority(huePriority),
   gammaConvert(gamma)
 {
 
