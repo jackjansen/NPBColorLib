@@ -54,41 +54,55 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
     maxFactor = min(maxFactor, color.B / whiteColor.B);
   }
   //
-  // This is our white value, and we subtract the corresponding whiteness from R, G and B
+  // Convert the W channel (if there is any whiteness in it already) to RGB whiteness.
   //
-  color.W += maxFactor;
+  color.W = color.W / WBrightness;
+  //
+  // This is our white value, and we subtract the corresponding whiteness from R, G and B.
+  // At this point in the code, all magnitudes are relative to 100% RGB led white.
+  //
+  color.W += maxFactor/WBrightness;
   color.R -= whiteColor.R*maxFactor;
   color.G -= whiteColor.G*maxFactor;
   color.B -= whiteColor.B*maxFactor;
   //
-  // Now we adjust for the maximum available brightness ()
+  // Now we adjust for the maximum available brightness (RGB + W combined).
+  // Magnitudes are still relative too 100% RGB LED white.
   //
   float maxBrightness = 1.0 + WBrightness; // Maximum brightness of all LEDs
   color.R *= maxBrightness;
   color.G *= maxBrightness;
   color.B *= maxBrightness;
   color.W *= maxBrightness;
+  //
+  // Move excess whiteness back to the RGB channel, in so far as possible.
+  //
+  if (color.W > 1) {
+    float excessWhite = (color.W - 1) * WBrightness;
+    color.W = 1;
+    color.R += whiteColor.R * excessWhite;
+    color.G += whiteColor.G * excessWhite;
+    color.B += whiteColor.B * excessWhite;
+  }
   if (huePriority) {
     //
     // If we need to be hue-preserving we divide everything by the maximum value iff
     // any value is >1. This maintains the hue at the expense of not driving the LEDs
     // to the maximum attainable brightness.
     //
-    float maxChannel = max(color.R, max(color.G, max(color.B, color.W)));
+    float maxChannel = max(color.R, max(color.G, color.B));
     if (maxChannel > 1) {
       color.R /= maxChannel;
       color.G /= maxChannel;
       color.B /= maxChannel;
-      color.W /= maxChannel;
+      color.W /= maxChannel/WBrightness;
     }
-  } else {
     if (color.W > 1) {
-      // We attempt to transfer excess whiteness back to the RGB channels
-      float excessWhite = color.W - 1;
+      float whiteOverflow = (color.W-1) * WBrightness;
       color.W = 1;
-      color.R += whiteColor.R * excessWhite;
-      color.G += whiteColor.G * excessWhite;
-      color.B += whiteColor.B * excessWhite;
+      color.R /= whiteOverflow;
+      color.G /= whiteOverflow;
+      color.B /= whiteOverflow;
     }
   }
   //
