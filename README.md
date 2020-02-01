@@ -45,5 +45,11 @@ An `RgbwSpace` object has a numnber of methods:
 - `toRgb()` converts any of the _xxxFColor_ objects to `RgbColor` (for use with RGB strips)
 - a `convert(from, to)` method with various signatures to convert in-place with as little copying as possible.
 
+## Examples
+
+There are two examples:
+
+- `whitecalibrate` is actually more of a utility than an example: it allows you to determine the relative power of your white LED and its color temperature by flashing white color with first only RGB leds and then only White leds.
+- `ledstripserver` is a web server that allows interactive changing of colors of a LED strip (or scripted changing through use of `curl` or similar programs). It should be runnable on an esp32 or esp8266 and with a bit of work maybe also on Arduino hardware with a WiFi card.
 
 
