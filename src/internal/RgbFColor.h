@@ -6,8 +6,8 @@ point numbers between 0.0 and 1.0
 
 #pragma once
 
-#include <Arduino.h>
-#include <NeoPixelBus.h>
+#include "Arduino.h"
+#include "NeoPixelBus.h"
 
 // ------------------------------------------------------------------------
 // RgbFColor represents a color object that is represented by Red, Green, Blue

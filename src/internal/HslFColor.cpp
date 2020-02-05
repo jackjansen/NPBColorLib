@@ -3,7 +3,7 @@ HslFColor provides a color object that represents Hsl values as floating
 point numbers between 0.0 and 1.0
 
 -------------------------------------------------------------------------*/
-
+#include "Arduino.h"
 #include "HslFColor.h"
 #include "RgbFColor.h"
 
@@ -56,8 +56,8 @@ HslFColor::operator RgbFColor() const
 
 HslFColor::HslFColor(RgbFColor const&src)
 {
-	float minColor = min(src.R, min(src.G, src.B));
-	float maxColor = max(src.R, max(src.G, src.B));
+	float minColor = fmin(src.R, fmin(src.G, src.B));
+	float maxColor = fmax(src.R, fmax(src.G, src.B));
 	L = (minColor + maxColor) / 2;
 	if (minColor == maxColor) {
 		H = 0;

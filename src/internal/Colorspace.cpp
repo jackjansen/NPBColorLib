@@ -41,17 +41,17 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   if (color.R == 0) {
     maxFactor = 0;
   } else if (whiteColor.R != 0) {
-    maxFactor = min(maxFactor, color.R / whiteColor.R);
+    maxFactor = fmin(maxFactor, color.R / whiteColor.R);
   }
   if (color.G == 0) {
     maxFactor = 0;
   } else if (whiteColor.G != 0) {
-    maxFactor = min(maxFactor, color.G / whiteColor.G);
+    maxFactor = fmin(maxFactor, color.G / whiteColor.G);
   }
   if (color.B == 0) {
     maxFactor = 0;
   } else if (whiteColor.B != 0) {
-    maxFactor = min(maxFactor, color.B / whiteColor.B);
+    maxFactor = fmin(maxFactor, color.B / whiteColor.B);
   }
   //
   // Convert the W channel (if there is any whiteness in it already) to RGB whiteness.
@@ -90,7 +90,7 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
     // any value is >1. This maintains the hue at the expense of not driving the LEDs
     // to the maximum attainable brightness.
     //
-    float maxChannel = max(color.R, max(color.G, color.B));
+    float maxChannel = fmax(color.R, fmax(color.G, color.B));
     if (maxChannel > 1) {
       color.R /= maxChannel;
       color.G /= maxChannel;
