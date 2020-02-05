@@ -61,7 +61,7 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   // This is our white value, and we subtract the corresponding whiteness from R, G and B.
   // At this point in the code, all magnitudes are relative to 100% RGB led white.
   //
-  color.W += maxFactor/WBrightness;
+  color.W += maxFactor;
   color.R -= whiteColor.R*maxFactor;
   color.G -= whiteColor.G*maxFactor;
   color.B -= whiteColor.B*maxFactor;
@@ -76,14 +76,19 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   color.W *= maxBrightness;
   //
   // Move excess whiteness back to the RGB channel, in so far as possible.
+  // Magnitude of the W channel is still in 100% RGB white.
   //
-  if (color.W > 1) {
-    float excessWhite = (color.W - 1) * WBrightness;
-    color.W = 1;
+  if (color.W > WBrightness) {
+    float excessWhite = color.W - WBrightness;
+    color.W = WBrightness;
     color.R += whiteColor.R * excessWhite;
     color.G += whiteColor.G * excessWhite;
     color.B += whiteColor.B * excessWhite;
   }
+  //
+  // Now we convert the W channel to its own 100% value.
+  //
+  color.W /= WBrightness;
   if (huePriority) {
     //
     // If we need to be hue-preserving we divide everything by the maximum value iff
@@ -97,6 +102,7 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
       color.B /= maxChannel;
       color.W /= maxChannel/WBrightness;
     }
+#if 0
     if (color.W > 1) {
       float whiteOverflow = (color.W-1) * WBrightness;
       color.W = 1;
@@ -104,6 +110,15 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
       color.G /= whiteOverflow;
       color.B /= whiteOverflow;
     }
+#endif
+  } else {
+    // We convert excess intensity in R, G, B to other channels.
+    float excessRintensity = fmax(color.R-1, 0);
+    float excessGintensity = fmax(color.G-1, 0);
+    float excessBintensity = fmax(color.B-1, 0);
+    color.R += (excessGintensity + excessBintensity)/2;
+    color.G += (excessRintensity + excessBintensity)/2;
+    color.B += (excessRintensity + excessGintensity)/2;
   }
   //
   // We now clamp all values. For brightness-priority it is definitely needed,
@@ -136,6 +151,15 @@ void Colorspace::Convert(const RgbFColor& from, RgbwColor& to) {
 
 void Colorspace::Convert(const TempFColor& from, RgbColor& to) {
   RgbFColor wanted(from);
+  if (!huePriority && from.Brightness > 0) {
+    float brightnessCorrect = from.Brightness / wanted.CalculateBrightness();
+    wanted.R *= brightnessCorrect;
+    wanted.G *= brightnessCorrect;
+    wanted.B *= brightnessCorrect;
+  }
+  _clamp(wanted.R);
+  _clamp(wanted.G);
+  _clamp(wanted.B);
   if (gammaConvert) {
     to = gammaConverter.Correct(wanted);
   } else {
@@ -145,6 +169,12 @@ void Colorspace::Convert(const TempFColor& from, RgbColor& to) {
 
 void Colorspace::Convert(const TempFColor& from, RgbwColor& to) {
   RgbwFColor wanted(from);
+  if (!huePriority && from.Brightness > 0) {
+    float brightnessCorrect = from.Brightness / wanted.CalculateBrightness();
+    wanted.R *= brightnessCorrect;
+    wanted.G *= brightnessCorrect;
+    wanted.B *= brightnessCorrect;
+  }
   _extractWhiteChannel(wanted);
   if (gammaConvert) {
     to = gammaConverter.Correct(wanted);
