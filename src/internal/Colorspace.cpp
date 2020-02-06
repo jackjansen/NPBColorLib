@@ -37,7 +37,7 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   // Note that during the execution of this method channel values may be > 1 but
   // that will all be fixed.
   //
-  float maxFactor = 1;
+  float maxFactor = 999;
   if (color.R == 0) {
     maxFactor = 0;
   } else if (whiteColor.R != 0) {
@@ -89,36 +89,17 @@ void Colorspace::_extractWhiteChannel(RgbwFColor& color) {
   // Now we convert the W channel to its own 100% value.
   //
   color.W /= WBrightness;
-  if (huePriority) {
-    //
-    // If we need to be hue-preserving we divide everything by the maximum value iff
-    // any value is >1. This maintains the hue at the expense of not driving the LEDs
-    // to the maximum attainable brightness.
-    //
-    float maxChannel = fmax(color.R, fmax(color.G, color.B));
-    if (maxChannel > 1) {
-      color.R /= maxChannel;
-      color.G /= maxChannel;
-      color.B /= maxChannel;
-      color.W /= maxChannel/WBrightness;
-    }
-#if 0
-    if (color.W > 1) {
-      float whiteOverflow = (color.W-1) * WBrightness;
-      color.W = 1;
-      color.R /= whiteOverflow;
-      color.G /= whiteOverflow;
-      color.B /= whiteOverflow;
-    }
-#endif
-  } else {
-    // We convert excess intensity in R, G, B to other channels.
-    float excessRintensity = fmax(color.R-1, 0);
-    float excessGintensity = fmax(color.G-1, 0);
-    float excessBintensity = fmax(color.B-1, 0);
-    color.R += (excessGintensity + excessBintensity)/2;
-    color.G += (excessRintensity + excessBintensity)/2;
-    color.B += (excessRintensity + excessGintensity)/2;
+  //
+  // If we need to be hue-preserving we divide everything by the maximum value iff
+  // any value is >1. This maintains the hue at the expense of not driving the LEDs
+  // to the maximum attainable brightness.
+  //
+  float maxChannel = fmax(color.R, fmax(color.G, color.B));
+  if (maxChannel > 1) {
+    color.R /= maxChannel;
+    color.G /= maxChannel;
+    color.B /= maxChannel;
+    color.W /= maxChannel/WBrightness;
   }
   //
   // We now clamp all values. For brightness-priority it is definitely needed,
@@ -156,6 +137,17 @@ void Colorspace::Convert(const TempFColor& from, RgbColor& to) {
     wanted.R *= brightnessCorrect;
     wanted.G *= brightnessCorrect;
     wanted.B *= brightnessCorrect;
+    // Finally we move light between the R, G, B. This will result in incorrect
+    // colors but so be it. We do this a few times in the hope it distributes everything.
+    for(int i=0; i<5; i++) {
+      float excessRintensity = fmax(wanted.R-1, 0);
+      float excessGintensity = fmax(wanted.G-1, 0);
+      float excessBintensity = fmax(wanted.B-1, 0);
+      if (excessRintensity < 0.01 && excessGintensity < 0.01 && excessBintensity < 0.01) break;
+      wanted.R = wanted.R - excessRintensity + (excessGintensity + excessBintensity) / 2;
+      wanted.G = wanted.G - excessGintensity + (excessRintensity + excessBintensity) / 2;
+      wanted.B = wanted.B - excessBintensity + (excessRintensity + excessGintensity) / 2;
+    }
   }
   _clamp(wanted.R);
   _clamp(wanted.G);
@@ -169,13 +161,44 @@ void Colorspace::Convert(const TempFColor& from, RgbColor& to) {
 
 void Colorspace::Convert(const TempFColor& from, RgbwColor& to) {
   RgbwFColor wanted(from);
+  _extractWhiteChannel(wanted);
   if (!huePriority && from.Brightness > 0) {
-    float brightnessCorrect = from.Brightness / wanted.CalculateBrightness();
+    float actualBrightness = (wanted.W*WBrightness + (wanted.R+wanted.G+wanted.B)/3) / (WBrightness+1);
+    float brightnessCorrect = from.Brightness / actualBrightness;
     wanted.R *= brightnessCorrect;
     wanted.G *= brightnessCorrect;
     wanted.B *= brightnessCorrect;
+    wanted.W *= brightnessCorrect;
+    // We attempt to transfer excess intensity to other channels.
+    float excessRintensity = fmax(wanted.R-1, 0);
+    float excessGintensity = fmax(wanted.G-1, 0);
+    float excessBintensity = fmax(wanted.B-1, 0);
+    if (WBrightness > 0) {
+      // First we transfer all of it to the white channel
+      wanted.W += ((excessRintensity + excessGintensity + excessBintensity) / 3 ) / WBrightness;
+      // Now we transfer the leftover back to all of R, G, B
+      float excessWintensity = fmax(wanted.W-1, 0)*WBrightness;
+      wanted.W -= excessWintensity/WBrightness;
+      wanted.R += excessWintensity;
+      wanted.G += excessWintensity;
+      wanted.B += excessWintensity;
+    }
+    // Finally we move light between the R, G, B. This will result in incorrect
+    // colors but so be it. We do this a few times in the hope it distributes everything.
+    for(int i=0; i<5; i++) {
+      excessRintensity = fmax(wanted.R-1, 0);
+      excessGintensity = fmax(wanted.G-1, 0);
+      excessBintensity = fmax(wanted.B-1, 0);
+      if (excessRintensity < 0.01 && excessGintensity < 0.01 && excessBintensity < 0.01) break;
+      wanted.R = wanted.R - excessRintensity + (excessGintensity + excessBintensity) / 2;
+      wanted.G = wanted.G - excessGintensity + (excessRintensity + excessBintensity) / 2;
+      wanted.B = wanted.B - excessBintensity + (excessRintensity + excessGintensity) / 2;
+    }
   }
-  _extractWhiteChannel(wanted);
+  _clamp(wanted.R);
+  _clamp(wanted.G);
+  _clamp(wanted.B);
+  _clamp(wanted.W);
   if (gammaConvert) {
     to = gammaConverter.Correct(wanted);
   } else {
