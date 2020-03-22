@@ -1,7 +1,7 @@
 # NPBColorLib
 Color representations and operations for NeoPixelBus.
 
-The intention (of the author, me, Jack Jansen) is that Makuna will incorporate this into NeoPixelBus. License
+The intention (of the author, me, Jack Jansen) is that Makuna will incorporate this into [NeoPixelBus](https://github.com/Makuna/NeoPixelBus). License
 is LGPL.
 
 _Note:_ As of this writing the _xxxFColor_ objects mimic the NeoPixelBus _xxxColor_ objects, but this is open to change. Maybe the interpolation functions and such are useless and need to go. Also, `HslFColor` is included because I have a slight preference for HSL over HSB/HSV, but it can go.
