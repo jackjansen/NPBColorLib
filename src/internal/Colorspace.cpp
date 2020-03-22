@@ -175,8 +175,26 @@ void Colorspace::Convert(const TempFColor& from, RgbwColor& to) {
     float excessBintensity = fmax(wanted.B-1, 0);
     if (WBrightness > 0) {
       // First we transfer all of it to the white channel
-      wanted.W += ((excessRintensity + excessGintensity + excessBintensity) / 3 ) / WBrightness;
-      // Now we transfer the leftover back to all of R, G, B
+      float excessRGBintensity = excessRintensity + excessGintensity + excessBintensity ;
+      wanted.W += (excessRGBintensity/3) / WBrightness;
+      wanted.R -= excessRGBintensity;
+      wanted.G -= excessRGBintensity;
+      wanted.B -= excessRGBintensity;
+      // If any RGB channel has become negative we move that to W
+      if (wanted.R < 0) {
+        wanted.W += (-wanted.R/3) / WBrightness;
+        wanted.R = 0;
+      }
+      if (wanted.G < 0) {
+        wanted.W += (-wanted.G/3) / WBrightness;
+        wanted.G = 0;
+      }
+      if (wanted.B < 0) {
+        wanted.W += (-wanted.B/3) / WBrightness;
+        wanted.B = 0;
+      }
+
+      // Now we transfer the leftover W back to all of R, G, B
       float excessWintensity = fmax(wanted.W-1, 0)*WBrightness;
       wanted.W -= excessWintensity/WBrightness;
       wanted.R += excessWintensity;
