@@ -42,6 +42,13 @@ float RgbwFColor::CalculateBrightness() const
 	return rgbBrightness;
 }
 
+float RgbwFColor::CalculateTrueBrightness(float whiteIntensity) const
+{
+	float rgbBrightness = (R + G + B) / 3;
+	if (whiteIntensity == 0) return rgbBrightness;
+	return (rgbBrightness + W*whiteIntensity) / ( 1 + whiteIntensity);
+}
+
 RgbwFColor RgbwFColor::Dim(float ratio) const
 {
     // specifically avoids float math

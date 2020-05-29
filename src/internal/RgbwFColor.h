@@ -88,9 +88,17 @@ struct RgbwFColor
 
     // ------------------------------------------------------------------------
     // CalculateBrightness will calculate the overall brightness
-    // NOTE: This is a simple linear brightness
+    // NOTE: This is a simple linear brightness, ignoring relative
+    // intensities
     // ------------------------------------------------------------------------
     float CalculateBrightness() const;
+
+    // ------------------------------------------------------------------------
+    // CalculateBrightness will calculate the overall brightness
+    // This takes into account the brightness of the white LED at 100%.
+    // The result is scaled to all LEDs on at 1.0
+    // ------------------------------------------------------------------------
+    float CalculateTrueBrightness(float whiteIntensity) const;
 
     // ------------------------------------------------------------------------
     // Dim will return a new color that is blended to black with the given ratio
